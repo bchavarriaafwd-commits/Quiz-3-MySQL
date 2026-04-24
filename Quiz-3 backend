@@ -1,0 +1,157 @@
+
+-- Crear base de datos --
+CREATE DATABASE IF NOT EXISTS biblioteca;
+USE biblioteca;
+
+-- 1. Tabla EDITORIAL
+CREATE TABLE EDITORIAL (
+    id_editorial INT PRIMARY KEY,
+    nombre VARCHAR(100),
+    pais VARCHAR(50)
+);
+
+-- 2. Tabla AUTOR
+CREATE TABLE AUTOR (
+    id_autor INT PRIMARY KEY,
+    nombre VARCHAR(100),
+    nacionalidad VARCHAR(50)
+);
+
+-- 3. Tabla CATEGORIA (identificada como 'r' en el diagrama superior izquierdo)
+CREATE TABLE CATEGORIA (
+    id_categoria INT PRIMARY KEY,
+    nombre VARCHAR(100)
+);
+
+-- 4. Tabla USUARIO (tabla superior derecha)
+CREATE TABLE USUARIO (
+    id_usuario INT PRIMARY KEY,
+    nombre VARCHAR(100),
+    correo VARCHAR(100),
+    fecha_registro DATE
+);
+
+-- 5. Tabla LIBRO
+CREATE TABLE LIBRO (
+    id_libro INT PRIMARY KEY,
+    titulo VARCHAR(200),
+    id_autor INT,
+    id_editorial INT,
+    anio_publicacion INT,
+    CONSTRAINT fk_libro_autor FOREIGN KEY (id_autor) REFERENCES AUTOR(id_autor),
+    CONSTRAINT fk_libro_editorial FOREIGN KEY (id_editorial) REFERENCES EDITORIAL(id_editorial)
+);
+
+-- 6. Tabla LIBRO_CATEGORIA (Relación muchos a muchos entre Libro y Categoría)
+CREATE TABLE LIBRO_CATEGORIA (
+    id_libro_categoria INT PRIMARY KEY,
+    id_categoria INT,
+    id_libro INT,
+    CONSTRAINT fk_lc_categoria FOREIGN KEY (id_categoria) REFERENCES CATEGORIA(id_categoria),
+    CONSTRAINT fk_lc_libro FOREIGN KEY (id_libro) REFERENCES LIBRO(id_libro)
+);
+
+-- 7. Tabla PRESTAMO
+CREATE TABLE PRESTAMO (
+    id_prestamo INT PRIMARY KEY,
+    id_usuario INT,
+    fecha_prestamo DATE,
+    CONSTRAINT fk_prestamo_usuario FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario)
+);
+
+-- 8. Tabla DETALLE_PRESTAMO
+CREATE TABLE DETALLE_PRESTAMO (
+    id_detalle INT PRIMARY KEY,
+    id_prestamo INT,
+    id_libro INT,
+    fecha_devolucion DATE,
+    CONSTRAINT fk_detalle_prestamo FOREIGN KEY (id_prestamo) REFERENCES PRESTAMO(id_prestamo),
+    CONSTRAINT fk_detalle_libro FOREIGN KEY (id_libro) REFERENCES LIBRO(id_libro)
+);
+
+
+-- NIVEL 1 --
+-- 1 --
+select * from libros;
+-- 2 --
+select titulo, anio_publicacion from libros;
+-- 3 --
+SELECT * FROM usuarios ORDER BY fecha_registro DESC;
+
+-- NIVEL 2 --
+-- 4 --
+SELECT libros.titulo as "Titulo Libro", autores.nombre as "Nombre Autor"
+FROM libros
+INNER JOIN autores ON libros.id_autor = autores.id_autor;
+-- 5 --
+SELECT libros.titulo AS "Titulo Libro", editoriales.nombre AS "Editorial"
+FROM libros
+INNER JOIN editoriales ON libros.id_editorial = editoriales.id_editorial;
+-- 6 --
+SELECT libros.titulo, categorias.nombre as "categoria"
+FROM libros
+INNER JOIN libro_categoria ON libros.id_libro = libro_categoria.id_libro
+INNER JOIN categorias ON libro_categoria.id_categoria = categorias.id_categoria;
+
+-- MIVEL 3 --
+-- 7
+SELECT usuarios.nombre, libros.titulo, prestamos.fecha_prestamo
+FROM prestamos
+INNER JOIN usuarios ON prestamos.id_usuario = usuarios.id_usuario
+INNER JOIN libros ON prestamos.id_libro = libros.id_libro;
+-- 8 --
+SELECT usuarios.nombre, libros.titulo, prestamos.fecha_prestamo
+FROM prestamos
+INNER JOIN usuarios ON prestamos.id_usuario = usuarios.id_usuario
+INNER JOIN libros ON prestamos.id_libro = libros.id_libro
+WHERE prestamos.fecha_devolucion IS NULL;
+-- 9 --
+SELECT usuarios.nombre AS "Usuario", libros.titulo AS "Libro", prestamos.fecha_prestamo AS "Fecha de Salida"
+FROM prestamos
+INNER JOIN usuarios ON prestamos.id_usuario = usuarios.id_usuario
+INNER JOIN libros ON prestamos.id_libro = libros.id_libro
+ORDER BY prestamos.fecha_prestamo DESC;
+
+-- NIVEL 4 --
+-- 10 --
+SELECT categorias.nombre AS "Categoría", COUNT(libro_categoria.id_libro) AS "Total de Libros"
+FROM categorias
+LEFT JOIN libro_categoria ON categorias.id_categoria = libro_categoria.id_categoria
+GROUP BY categorias.nombre;
+-- 11 --
+SELECT usuarios.nombre AS "Usuario", COUNT(prestamos.id_prestamo) AS "Total Préstamos"
+FROM usuarios
+LEFT JOIN prestamos ON usuarios.id_usuario = prestamos.id_usuario
+GROUP BY usuarios.nombre
+ORDER BY  "Total Préstamos" DESC;
+-- 12 --
+SELECT editoriales.nombre AS "Editorial", COUNT(libros.id_libro) AS "Cantidad de Libros"
+FROM editoriales
+LEFT JOIN libros ON editoriales.id_editorial = libros.id_editorial
+GROUP BY editoriales.nombre
+ORDER BY  "Cantidad de Libros" DESC;
+
+-- NIVEL 4 --
+-- 13 --
+SELECT usuarios.nombre AS "Usuario con más préstamos", COUNT(prestamos.id_prestamo) AS "Total"
+FROM usuarios
+INNER JOIN prestamos ON usuarios.id_usuario = prestamos.id_usuario
+GROUP BY usuarios.nombre
+ORDER BY Total DESC
+LIMIT 1;
+-- 14 --
+SELECT libros.titulo AS "Libro más solicitado", COUNT(prestamos.id_prestamo) AS "Total de veces"
+FROM libros
+INNER JOIN prestamos ON libros.id_libro = prestamos.id_libro
+GROUP BY libros.titulo
+ORDER BY "Total de veces" DESC
+LIMIT 1;
+-- 15 --
+SELECT categorias.nombre AS "Categoría más popular", COUNT(prestamos.id_prestamo) AS "Total Préstamos"
+FROM categorias
+INNER JOIN libro_categoria ON categorias.id_categoria = libro_categoria.id_categoria
+INNER JOIN libros ON libro_categoria.id_libro = libros.id_libro
+INNER JOIN prestamos ON libros.id_libro = prestamos.id_libro
+GROUP BY categorias.nombre
+ORDER BY  "Total Préstamos" DESC
+LIMIT 1;
