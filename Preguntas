@@ -1,0 +1,11 @@
+1:se utiliza en SQL para combinar filas de dos o más tablas** basándose en una columna común entre ellas
+
+2:el INNER JOIN solo devuelve los datos que coinciden en ambas tablas, mientras que los OUTER JOIN (LEFT, RIGHT y FULL) devuelven también los datos que no tienen pareja, conservando toda la información de la tabla izquierda, de la derecha o de ambas
+
+una columna que crea un vínculo entre dos tablas para asegurar que los datos estén relacionados correctamente.
+
+ocurre cuando múltiples registros de una tabla están vinculados con múltiples registros de otra, como sucede con los libros y las categorías, donde un libro puede pertenecer a varios géneros y cada género contiene a su vez muchos libros.
+
+sirve para agrupar filas que tienen los mismos valores en columnas específicas y así poder realizar cálculos sobre esos grupos. Se utiliza casi siempre junto con funciones de agregado como `COUNT` (contar), `SUM` (sumar), `AVG` (promediar), `MAX` o `MIN` para obtener resúmenes de datos, como saber cuántos libros hay por cada categoría o cuál es el total de préstamos por cada usuario.
+
+ para filtrar los resultados de una consulta después de que los datos han sido agrupados con `GROUP BY`.
